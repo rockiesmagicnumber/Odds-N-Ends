@@ -15,10 +15,14 @@ namespace Andrew.OddsNEnds
 
                 if ((value != null || overWriteWithNull) && value is IComparable && !value.Equals(existingValue))
                 {
+		    // I picked IList because I can directly apply indexing to IList, but not to ICollection or IEnumerable
                     if (value is IList iLvalue)
                     {
                         IList exILvalue = (IList)existingValue;
-
+			    
+                        // Initial use case assumed any IList objects would have an equal number of entries
+			// This assumption is stupid.
+			// TODO: Add "Insert/Delete" functionality
                         for (int i = 0; i < iLvalue.Count; i++)
                         {
                             var v = iLvalue[i];
