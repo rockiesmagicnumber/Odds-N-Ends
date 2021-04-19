@@ -199,25 +199,25 @@ const SectionLayouts = {
     OtherPitching: {
         FriendlyName: "Other Pitching Ratings",
         Fields: [{
-                Name: "Velocity",
-                ColName: "Velocity",
-                Order: 1,
-            }, {
-                Name: "Groundball %",
-                ColName: "GB %",
-                Order: 2,
-            }, {
-                Name: "Arm Slot",
-                ColName: "Arm Slot",
-                Order: 3,
-            }, {
                 Name: "Stamina",
                 ColName: "Stamina",
-                Order: 3,
+                Order: 1,
             }, {
                 Name: "Hold Runners",
                 ColName: "Hold",
+                Order: 2,
+            }, {
+                Name: "Velocity",
+                ColName: "Velocity",
                 Order: 3,
+            }, {
+                Name: "GB %",
+                ColName: "GB %",
+                Order: 4,
+            }, {
+                Name: "Arm Slot",
+                ColName: "Arm Slot",
+                Order: 5,
             }
         ]
     }
@@ -299,7 +299,7 @@ function createSection(dataTable) {
     var entity = dataTable.id;
     var sectionLayout = SectionLayouts[entity].Fields.sort((a, b) => (a.Order > b.Order) ? 1 : -1);
     html += '<div id="' + entity + '">';
-    html += '<div class="row"><span style="style="width:100%;background-color:' + Constants.headerBackgroundColor + ';">' + SectionLayouts[entity].FriendlyName + '</span></div>';
+    html += '<div class="row"><span style="font-size:1em;font-weight:bold;">' + SectionLayouts[entity].FriendlyName + '</span></div>';
     if (entity === "Fielding") {}
     else if (entity === "Batting" || entity === "Pitching") {
         for (var i = 0; i < sectionLayout.length; i++) {
@@ -310,20 +310,18 @@ function createSection(dataTable) {
                 html += createRatingRows(rating.Name, currentData[rating.ColName], potentialData[rating.ColName]);
             }
         }
-    } else if (entity === "PitchRatings") {
+    } else if (entity === "PitchRatings" || entity === "Position" || entity === "RunBunt" || entity === "OtherPitching") {
         for (var i = 0; i < sectionLayout.length; i++) {
             var rating = sectionLayout[i];
             var data = dataTable.data.find(x => x[entity] === rating.ColName);
             if (data) {
-                html += createRatingRows(rating.Name, data.Cur, data.Pot);
-            }
-        }
-    } else if (entity === "Position") {
-        for (var i = 0; i < sectionLayout.length; i++) {
-            var rating = sectionLayout[i];
-            var data = dataTable.data.find(x => x[entity] === rating.ColName);
-            if (data) {
-                html += createRatingRows(rating.Name, data.Rating);
+                if (data.Rating && $.isNumeric(data.Rating)) {
+                    html += createRatingRows(rating.Name, data.Rating);
+                } else if (data.Cur && $.isNumeric(data.Cur)) {
+                    html += createRatingRows(rating.Name, data.Cur, data.Pot);
+                } else {
+                    html += createTextRows(rating.Name, data.Rating);
+                }
             }
         }
     }
@@ -331,10 +329,16 @@ function createSection(dataTable) {
     return html;
 }
 
+function createTextRows(ratingName, rating) {
+    var html = '<div class="row"><div class="col-md-6">' + ratingName + '</div><div class="col-md-6">' + rating + '</div></div>';
+    html += "";
+    return html;
+}
+
 function createRatingRows(ratingName, cur, pot) {
     var html = "";
     var hasPot = (typeof pot !== "undefined");
-    html += '<div class="row"><span">' + ratingName + '</span></div>';
+    html += '<div class="row"><span style="font-size:.83em;font-weight:bold;">' + ratingName + '</span></div>';
     html += '<div class="row">';
     html += '<div class="customMeter">';
     if (hasPot) {
@@ -342,10 +346,11 @@ function createRatingRows(ratingName, cur, pot) {
     }
     // I hate this line. The way the "bottom" properties are set, if I don't have the "potential" rating, the "current" bumps up a row, so I need to set that class to "potential". Annoying.
     html += '<span class="' + (!hasPot ? 'potential' : 'current') + '" style="width:' + (100 / 14) * Math.round(((cur >= 80 ? 80 : cur) - 10) / 5) + '%; background-color:' + RatingColors.find(x => x.rating == cur).color + '">';
-    html += '<div style="background-color:black; opacity: 0.5; width:60px;">';
+    html += '<div style="background-color:black; opacity: 0.5; width:' + (hasPot ? "60" : "30") + 'px;">';
     html += '<div style="margin-left:10px;font-weight: bold;font-color:white;">' + cur + (hasPot ? ' / ' + pot : "") + '</div>';
     html += '</div>';
     html += '</span>';
+
     html += '</div>';
     html += '</div>';
     return html;
@@ -357,27 +362,18 @@ function injectCss(css) {
 }
 
 function runMe() {
-    $("#player-page-osa-ratings").append('<div id="myPlayerVisualizer" style="width:50%;"></div>');
-    //var myObjectArray = [];
-    var tableSelector = "table.statsplustable-zebra";
-    for (var j = 0; j < $(tableSelector).length; j++) {
-        var thisTable = $(tableSelector)[j];
+    var tables = $("table.statsplustable-zebra");
+    for (var j = 0; j < tables.length; j++) {
+        var thisTable = tables[j];
         var myObject = getDataTableObject(thisTable);
-        var section = createSection({
-                data: myObject,
-                id: cleanString(Object.keys(myObject[0])[0])
-            });
-        $(section).appendTo("#myPlayerVisualizer");
-        //$(tableSelector)[j].replaceWith(section);
-        // myObjectArray.push({
-        // data: myObject,
-        // id: cleanString(Object.keys(myObject[0])[0])
-        // });
+        var dataObj = {
+            data: myObject,
+            id: cleanString(Object.keys(myObject[0])[0])
+        };
+        var section = createSection(dataObj);
+        $(thisTable).replaceWith('<div style="margin: 0 5% 5%" id="' + dataObj.id + '"></div>');
+        $(section).appendTo("#" + dataObj.id)
     }
-    //$(createSection()).appendTo("#myPlayerVisualizer");
-    //getDataTableObject().forEach(x => {
-    //$(createSection(x)).appendTo("#myPlayerVisualizer");
-    //});
 };
 
 injectCss(Constants.css);
