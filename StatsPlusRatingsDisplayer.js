@@ -64,9 +64,11 @@ const SectionLayouts = {
         FriendlyName: "Position Ratings",
         Fields: [{
                 Name: "Pitcher",
+                ColName: "Pitcher",
                 Order: 1,
             }, {
                 Name: "Catcher",
+                ColName: "Catcher",
                 Order: 2,
             }, {
                 Name: "First Base",
@@ -266,37 +268,28 @@ const RatingColors = [{
         rating: 90,
         color: "#0097FD"
     }, ]
-function getDataTableObject() {
-    var myObjectArray = [];
-    var tableSelector = "table.statsplustable-zebra";
-    for (var j = 0; j < $(tableSelector).length; j++) {
-        var thisTable = $(tableSelector)[j];
-        var myObject = [];
-        var trArray = $(thisTable).find("tr");
-        var header = trArray[0];
-        var headerData = $(header).find("th");
-        for (var k = 0; k < trArray.length; k++) {
-            var thisTr = trArray[k];
-            var thisRow = {};
-            var rowData = $(thisTr).find("td");
-            if (rowData.length > 0) {
-                for (var i = 0; i < rowData.length; i++) {
-                    try {
-                        thisRow[cleanString((headerData[i] ? headerData[i].textContent : "Rating"))] = rowData[i].textContent;
-                    } catch (e) {
-                        console.error(e);
-                        console.log(rowData);
-                    }
+function getDataTableObject(thisTable) {
+    var myObject = [];
+    var trArray = $(thisTable).find("tr");
+    var header = trArray[0];
+    var headerData = $(header).find("th");
+    for (var k = 0; k < trArray.length; k++) {
+        var thisTr = trArray[k];
+        var thisRow = {};
+        var rowData = $(thisTr).find("td");
+        if (rowData.length > 0) {
+            for (var i = 0; i < rowData.length; i++) {
+                try {
+                    thisRow[cleanString((headerData[i] ? headerData[i].textContent : "Rating"))] = rowData[i].textContent;
+                } catch (e) {
+                    console.error(e);
+                    console.log(rowData);
                 }
-                myObject.push(thisRow);
             }
+            myObject.push(thisRow);
         }
-        myObjectArray.push({
-            data: myObject,
-            id: cleanString(Object.keys(myObject[0])[0])
-        });
     }
-    return myObjectArray;
+    return myObject;
 }
 function cleanString(str) {
     return str.replace(" ", "").replace("/", "");
@@ -304,11 +297,20 @@ function cleanString(str) {
 function createSection(dataTable) {
     var html = "";
     var entity = dataTable.id;
+    var sectionLayout = SectionLayouts[entity].Fields.sort((a, b) => (a.Order > b.Order) ? 1 : -1);
+    html += '<div id="' + entity + '">';
+    html += '<div class="row"><span style="style="width:100%;background-color:' + Constants.headerBackgroundColor + ';">' + SectionLayouts[entity].FriendlyName + '</span></div>';
     if (entity === "Fielding") {}
-    else if (entity === "PitchRatings") {
-        var sectionLayout = SectionLayouts[entity].Fields.sort((a, b) => (a.Order > b.Order) ? 1 : -1);
-        html += '<div id="' + entity + '">';
-        html += '<div class="row"><span style="style="width:100%;background-color:' + Constants.headerBackgroundColor + ';">' + SectionLayouts[entity].FriendlyName + '</span></div>';
+    else if (entity === "Batting" || entity === "Pitching") {
+        for (var i = 0; i < sectionLayout.length; i++) {
+            var rating = sectionLayout[i];
+            var currentData = dataTable.data.find(x => x[entity] === "Current");
+            var potentialData = dataTable.data.find(x => x[entity] === "Potential");
+            if (currentData && potentialData) {
+                html += createRatingRows(rating.Name, currentData[rating.ColName], potentialData[rating.ColName]);
+            }
+        }
+    } else if (entity === "PitchRatings") {
         for (var i = 0; i < sectionLayout.length; i++) {
             var rating = sectionLayout[i];
             var data = dataTable.data.find(x => x[entity] === rating.ColName);
@@ -316,20 +318,32 @@ function createSection(dataTable) {
                 html += createRatingRows(rating.Name, data.Cur, data.Pot);
             }
         }
-        html += '</div>';
+    } else if (entity === "Position") {
+        for (var i = 0; i < sectionLayout.length; i++) {
+            var rating = sectionLayout[i];
+            var data = dataTable.data.find(x => x[entity] === rating.ColName);
+            if (data) {
+                html += createRatingRows(rating.Name, data.Rating);
+            }
+        }
     }
+    html += '</div>';
     return html;
 }
 
 function createRatingRows(ratingName, cur, pot) {
     var html = "";
+    var hasPot = (typeof pot !== "undefined");
     html += '<div class="row"><span">' + ratingName + '</span></div>';
     html += '<div class="row">';
     html += '<div class="customMeter">';
-    html += '<span class="potential" style="width:' + (100 / 14) * Math.round(((pot >= 80 ? 80 : pot) - 10) / 5) + '%; background-color:' + RatingColors.find(x => x.rating == pot).color + '"></span>';
-    html += '<span style="width:' + (100 / 14) * Math.round(((cur >= 80 ? 80 : cur) - 10) / 5) + '%; background-color:' + RatingColors.find(x => x.rating == cur).color + '">';
+    if (hasPot) {
+        html += '<span class="potential" style="width:' + (100 / 14) * Math.round(((pot >= 80 ? 80 : pot) - 10) / 5) + '%; background-color:' + RatingColors.find(x => x.rating == pot).color + '"></span>';
+    }
+    // I hate this line. The way the "bottom" properties are set, if I don't have the "potential" rating, the "current" bumps up a row, so I need to set that class to "potential". Annoying.
+    html += '<span class="' + (!hasPot ? 'potential' : 'current') + '" style="width:' + (100 / 14) * Math.round(((cur >= 80 ? 80 : cur) - 10) / 5) + '%; background-color:' + RatingColors.find(x => x.rating == cur).color + '">';
     html += '<div style="background-color:black; opacity: 0.5; width:60px;">';
-    html += '<div style="margin-left:10px;font-weight: bold;font-color:white;">' + cur + ' / ' + pot + '</div>';
+    html += '<div style="margin-left:10px;font-weight: bold;font-color:white;">' + cur + (hasPot ? ' / ' + pot : "") + '</div>';
     html += '</div>';
     html += '</span>';
     html += '</div>';
@@ -344,9 +358,26 @@ function injectCss(css) {
 
 function runMe() {
     $("#player-page-osa-ratings").append('<div id="myPlayerVisualizer" style="width:50%;"></div>');
-    getDataTableObject().forEach(x => {
-        $(createSection(x)).appendTo("#myPlayerVisualizer");
-    });
+    //var myObjectArray = [];
+    var tableSelector = "table.statsplustable-zebra";
+    for (var j = 0; j < $(tableSelector).length; j++) {
+        var thisTable = $(tableSelector)[j];
+        var myObject = getDataTableObject(thisTable);
+        var section = createSection({
+                data: myObject,
+                id: cleanString(Object.keys(myObject[0])[0])
+            });
+        $(section).appendTo("#myPlayerVisualizer");
+        //$(tableSelector)[j].replaceWith(section);
+        // myObjectArray.push({
+        // data: myObject,
+        // id: cleanString(Object.keys(myObject[0])[0])
+        // });
+    }
+    //$(createSection()).appendTo("#myPlayerVisualizer");
+    //getDataTableObject().forEach(x => {
+    //$(createSection(x)).appendTo("#myPlayerVisualizer");
+    //});
 };
 
 injectCss(Constants.css);
