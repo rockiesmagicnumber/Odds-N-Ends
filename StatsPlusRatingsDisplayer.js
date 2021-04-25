@@ -302,8 +302,27 @@ $(() => {
         var sectionLayout = SectionLayouts[entity].Fields.sort((a, b) => (a.Order > b.Order) ? 1 : -1);
         html += '<div id="' + entity + '">';
         html += '<div class="row"><span style="font-size:1em;font-weight:bold;">' + SectionLayouts[entity].FriendlyName + '</span></div>';
-        if (entity === "Fielding") {}
-        else if (entity === "Batting" || entity === "Pitching") {
+        if (entity === "Fielding") {
+            var dat = dataTable.data;
+            rating = sectionLayout[0];
+            html += createRatingRows(rating.Name, dat[4].C);
+            rating = sectionLayout[1];
+            html += createRatingRows(rating.Name, dat[2].C);
+            rating = sectionLayout[2];
+            html += createRatingRows(rating.Name, dat[0].IF);
+            rating = sectionLayout[3];
+            html += createRatingRows(rating.Name, dat[1].IF);
+            rating = sectionLayout[4];
+            html += createRatingRows(rating.Name, dat[2].IF);
+            rating = sectionLayout[5];
+            html += createRatingRows(rating.Name, dat[3].IF);
+            rating = sectionLayout[6];
+            html += createRatingRows(rating.Name, dat[0].OF);
+            rating = sectionLayout[7];
+            html += createRatingRows(rating.Name, dat[1].OF);
+            rating = sectionLayout[8];
+            html += createRatingRows(rating.Name, dat[2].OF);
+        } else if (entity === "Batting" || entity === "Pitching") {
             var currentData = dataTable.data.find(x => x[entity] === "Current");
             var potentialData = dataTable.data.find(x => x[entity] === "Potential");
             for (let i = 0; i < sectionLayout.length; i++) {
@@ -380,28 +399,41 @@ $(() => {
                 id: cleanString(Object.keys(myObject[0])[0])
             };
             var section = createSection(dataObj);
-            $(thisTable).replaceWith('<div style="text-align:center; margin: 0 5% 5%" id="' + dataObj.id + '"></div>');
-            $(section).appendTo("#" + dataObj.id)
+            var newId = (dataObj.id === "Batting" ? "Batting" : dataObj.id === "Pitching" ? "Pitching" : generateId(10)) + "-" + $(".scoutrating-toggle").prop("checked");
+            $(thisTable).replaceWith('<div style="text-align:center; margin: 0 5% 5%" id="' + newId + '"></div>');
+            $(section).appendTo("#" + newId);
         }
         resizeExisting();
     }
 
     function resizeExisting() {
-        $("#Batting").parent().removeClass("col-md-7").addClass("col-md-6");
-        $("#Pitching").parent().removeClass("col-md-5").addClass("col-md-6");
+        $("#Batting-on, #Batting-off").parent().removeClass("col-md-7").addClass("col-md-6");
+        $("#Pitching-on, #Pitching-off").parent().removeClass("col-md-5").addClass("col-md-6");
     }
-
-    injectCss(Constants.css);
 
     function updateScreen() {
         setTimeout(() => {
             runMe();
         }, 100);
     }
+    // dec2hex :: Integer -> String
+    // i.e. 0-255 -> '00'-'ff'
+    function dec2hex(dec) {
+        return dec.toString(16).padStart(2, "0")
+    }
 
-    updateScreen();
+    // generateId :: Integer -> String
+    function generateId(len) {
+        var arr = new Uint8Array((len || 40) / 2)
+            window.crypto.getRandomValues(arr)
+            return Array.from(arr, dec2hex).join('')
+    }
 
-    $(".scoutrating-toggle").change(() => {
+    $(".scoutrating-toggle").change(e => {
         updateScreen();
     });
+
+    injectCss(Constants.css);
+
+    updateScreen();
 });
