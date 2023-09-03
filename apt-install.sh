@@ -21,7 +21,7 @@ wget -qO - https://cdn.cloudflare.steamstatic.com/client/installer/steam.deb > ~
 
 # install apt packages
 sudo apt update
-sudo apt install nala brave-browser sublime-text sublime-merge flatpak audacity dolphin com.github.tkashkin.gamehub lutris htop python3 pipx transmission timeshift
+sudo apt install nala brave-browser sublime-text sublime-merge flatpak audacity dolphin com.github.tkashkin.gamehub lutris htop python3 pipx transmission timeshift fonts-powerline cheese
 sudo apt install ~/Downloads/steam_latest.deb
 sudo apt install ~/Downloads/amdgpu-top.deb
 
@@ -38,3 +38,32 @@ sudo -v && wget -nv -O- https://download.calibre-ebook.com/linux-installer.sh | 
 
 # install flatpak packages
 flatpak install flathub com.heroicgameslauncher.hgl
+
+# oh-my-bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/ohmybash/oh-my-bash/master/tools/install.sh)"
+
+
+### Update .bashrc
+# # BEGIN Stable-Diffusion aliasing
+# alias stable-diffusion='sudo docker exec -it a1d7632f1603 bash'
+# alias start-stable-diffusion='sudo docker start a1d7632f1603ecc93f6e0a088bcda62c34d91891fe2ddcd71d52788ea7348bea'
+# # END Stable-Diffusion aliasing
+
+# # BEGIN lgogdownloader update library
+# alias gog-library-refresh='lgogdownloader --download --platform w+l --directory /media/the-archive/Game-Installers/'
+# # END
+
+# # BEGIN update-and-something
+# alias update-and-suspend='sudo nala update && sudo nala upgrade -y && flatpak upgrade -y && systemctl suspend'
+# alias update-and-reboot='sudo nala update && sudo nala upgrade -y && flatpak upgrade -y && sudo reboot now'
+# alias update-and-shutdown='sudo nala update && sudo nala upgrade -y && flatpak upgrade -y && sudo shutdown now'
+# alias update-everything='sudo nala update && sudo nala upgrade -y && flatpak upgrade -y'
+# # END 
+
+# # BEGIN export env variable for AGS SDK
+# export LD_LIBRARY_PATH='~/arcgis/maps_sdk/qt200.0.0/sdk/linux/x64/lib'
+# # END
+
+# # BEGIN I always mix up the cmd/ps and bash "clear" commands.
+# alias cls='clear'
+# # END
