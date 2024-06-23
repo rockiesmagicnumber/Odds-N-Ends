@@ -14,7 +14,7 @@ echo "deb https://download.sublimetext.com/ apt/stable/" | sudo tee /etc/apt/sou
 wget -qO - https://cdn.cloudflare.steamstatic.com/client/installer/steam.deb > ~/Downloads/steam_latest.deb
 
 # discord
-wget -q0 - https://discord.com/api/download?platform=linux&format=deb > ~/Downloads/discord_latest.deb
+wget -qO - https://discord.com/api/download?platform=linux&format=deb > ~/Downloads/discord_latest.deb
 
 # visual studio code
 wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
