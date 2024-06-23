@@ -25,6 +25,9 @@ rm -f packages.microsoft.gpg
 # calibre
 sudo -v && wget -nv -O- https://download.calibre-ebook.com/linux-installer.sh | sudo sh /dev/stdin
 
+# pinta
+sudo add-apt-repository ppa:pinta-maintainers/pinta-stable
+
 # install apt packages
 sudo apt update
 sudo apt install apt brave-browser sublime-text sublime-merge flatpak audacity dolphin gamehub lutris htop transmission timeshift fonts-powerline cheese clamav borgbackup code discord lgogdownloader pinta vlc
