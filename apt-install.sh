@@ -26,7 +26,8 @@ rm -f packages.microsoft.gpg
 sudo -v && wget -nv -O- https://download.calibre-ebook.com/linux-installer.sh | sudo sh /dev/stdin
 
 # pinta
-sudo add-apt-repository ppa:pinta-maintainers/pinta-stable
+# sudo snap install pinta
+# flatpak install pinta
 
 # install apt packages
 sudo apt update
