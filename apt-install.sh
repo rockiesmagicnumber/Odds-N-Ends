@@ -44,18 +44,16 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/ohmybash/oh-my-bash/mast
 
 ### Update .bashrc
 
-# # BEGIN lgogdownloader update library
-# alias gog-library-refresh='lgogdownloader --download --platform w+l --directory /media/the-archive/Game-Installers/'
-# # END
+# BEGIN update-and-something
+alias borg-backup='cd ~ && borg create -e **/.cache -e **[Cc]ache** -e **/[Dd]ownloads --list /media/the-archive/borg-backups::archive-{hostname}-{now} .'
+alias update-everything='sudo apt update || borg-backup || sudo apt full-upgrade -y && sudo apt autoremove -y && sudo apt autoclean -y && flatpak update -y'
+alias update-and-suspend='update-everything && systemctl suspend'
+alias update-and-reboot='update-everything && sudo reboot now'
+alias update-and-shutdown='supdate-everything && sudo shutdown now'
+alias gog-library-refresh='lgogdownloader --update-cache && lgogdownloader --repair --download --use-cache --check-orphans --platform w+l --directory /media/the-archive/Game-Installers/'
+# END 
 
-# # BEGIN update-and-something
-# alias update-and-suspend='sudo apt update && sudo apt upgrade -y && flatpak upgrade -y && systemctl suspend'
-# alias update-and-reboot='sudo apt update && sudo apt upgrade -y && flatpak upgrade -y && sudo reboot now'
-# alias update-and-shutdown='sudo apt update && sudo apt upgrade -y && flatpak upgrade -y && sudo shutdown now'
-# alias update-everything='sudo apt update && sudo apt upgrade -y && flatpak upgrade -y'
-# alias gog-library-refresh='lgogdownloader --update-cache && lgogdownloader --repair --download --use-cache --check-orphans --platform w+l --directory /media/the-archive/Game-Installers/'
-# # END 
+# 
+export PATH=$PATH:/home/rockiesmagicnumber/.cargo/bin
+export PATH="$HOME/platform-tools:$PATH"
 
-# # BEGIN I always mix up the cmd/ps and bash "clear" commands.
-# alias cls='clear'
-# # END
