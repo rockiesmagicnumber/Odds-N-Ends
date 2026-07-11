@@ -1,0 +1,7 @@
+com.brave.Browser
+com.discordapp.Discord
+com.github.PintaProject.Pinta
+com.heroicgameslauncher.hgl
+com.mastermindzh.tidal-hifi
+io.github.heathcliff26.go-minesweeper
+org.onlyoffice.desktopeditors
