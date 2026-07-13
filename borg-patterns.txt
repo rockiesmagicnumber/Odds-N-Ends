@@ -1,0 +1,35 @@
+# Junk/cache/reproducible directories that are ALWAYS excluded, even inside
+# a repo carved back in via borg-extra-includes.txt - borg-backup.sh puts
+# this file first in the concatenated patterns list, ahead of extra-includes
+# and the Repos blanket-exclude, specifically so these win regardless (a
+# dirty repo's *source* is what's worth backing up, not its venv/
+# node_modules - verified by dry-run: without this ordering, carving in one
+# dirty repo pulled its entire venv/site-packages along with it).
+#
+# Uses `re:` (regex) patterns, not `fm:` shell-glob patterns: borg-backup.sh
+# runs `borg create` from ~ with `.` as the source, so top-level entries
+# appear in the tree as bare relative names ("Repos", "Downloads", not
+# "/home/.../Repos"). `fm:**/Repos` requires a path segment before "Repos"
+# to match, so it silently fails to match (and therefore fails to exclude)
+# exactly the top-level case that matters most here - verified by dry-run,
+# where 61% of ~/Repos leaked through with the naive fm: pattern. `(^|/)`
+# matches both "at the very start of the path" and "after a slash", so it
+# correctly excludes the directory whether it's a top-level child of ~ or
+# nested deeper (e.g. node_modules several levels inside a repo).
+- re:(^|/)\.cache(/|$)
+- re:(^|/)[Cc]ache
+- re:(^|/)[Dd]ownloads(/|$)
+- re:(^|/)\.var(/|$)
+- re:(^|/)\.local/share/Trash(/|$)
+- re:(^|/)node_modules(/|$)
+- re:(^|/)venv(/|$)
+- re:(^|/)\.venv(/|$)
+
+# No trailing catch-all needed: patterns-from defaults to including anything
+# that didn't match an exclude rule (verified by dry-run) - an earlier draft
+# had a `+ pp:/home/rockiesmagicnumber` line here, but pp: matches against
+# the archived (relative) path, so an absolute-looking prefix like that
+# would never actually match anything. The blanket "- re:(^|/)Repos(/|$)"
+# exclude (with the extra-includes carve-out) is appended by
+# borg-backup.sh itself, after this file and after borg-extra-includes.txt -
+# see that script for why the ordering matters.

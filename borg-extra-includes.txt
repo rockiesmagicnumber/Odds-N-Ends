@@ -1,0 +1,9 @@
+# Hand-edit this file right before each wipe. Run repos-check-dirty.sh first;
+# for every FLAGGED repo you can't just push/stash, add a line here (repo
+# name relative to ~/Repos, matching what repos-check-dirty.sh printed):
+#   + re:(^|/)Repos/some-wip-project(/|$)
+# These lines are prepended ahead of borg-patterns.txt at backup time, so
+# they override the blanket "- re:(^|/)Repos(/|$)" exclude for just those
+# paths (patterns-from is first-match-wins).
+# Clear this file back out (or leave stale entries - they're harmless, just
+# redundant) once the flagged work is pushed/resolved.
