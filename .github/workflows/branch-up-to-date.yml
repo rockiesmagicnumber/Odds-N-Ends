@@ -1,0 +1,27 @@
+name: Branch up to date
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  check-up-to-date:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out PR branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch destination branch
+        run: git fetch origin "${{ github.event.pull_request.base.ref }}"
+
+      - name: Verify branch is up to date with destination
+        run: |
+          BASE_REF="${{ github.event.pull_request.base.ref }}"
+          BEHIND=$(git rev-list --count HEAD.."origin/$BASE_REF")
+          if [ "$BEHIND" -gt 0 ]; then
+            echo "::error::This branch is $BEHIND commit(s) behind origin/$BASE_REF. Pull and merge $BASE_REF into this branch before opening/updating the PR."
+            exit 1
+          fi
+          echo "Branch is up to date with origin/$BASE_REF."
