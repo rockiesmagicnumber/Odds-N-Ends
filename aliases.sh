@@ -14,5 +14,9 @@ alias update-and-reboot='update-everything && sudo reboot now'
 alias update-and-shutdown='update-everything && sudo shutdown now'
 alias gog-library-refresh='lgogdownloader --update-cache && lgogdownloader --repair --download --use-cache --check-orphans --platform w+l --directory /mnt/network-storage/Game-Installers/'
 
+# nohup so Steam launching survives the terminal closing
+alias steam='cd "$HOME/.nohup" && nohup steam > /dev/null 2>&1 &'
+alias bat="batcat"
+
 export PATH="$PATH:$HOME/.cargo/bin"
 export PATH="$HOME/platform-tools:$PATH"
