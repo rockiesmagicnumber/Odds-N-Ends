@@ -1,13 +1,14 @@
 #!/usr/bin/env zsh
 # Adds third-party APT repos/keys that a plain package-name list can't capture
-# (Brave, Sublime Text/Merge, VSCodium, Calibre). Safe to re-run.
+# (Brave, Sublime Text/Merge, VSCodium, Calibre, Docker, AMD amdgpu).
+# Safe to re-run.
 set -euo pipefail
 
 # brave
 if [[ ! -f /etc/apt/sources.list.d/brave-browser-release.list ]]; then
   sudo curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg \
     https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
-  echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main" \
+  echo "deb [arch=amd64 signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main" \
     | sudo tee /etc/apt/sources.list.d/brave-browser-release.list
 fi
 
@@ -21,13 +22,35 @@ fi
 if [[ ! -f /etc/apt/sources.list.d/vscodium.list ]]; then
   wget -qO - https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg \
     | gpg --dearmor | sudo dd of=/usr/share/keyrings/vscodium-archive-keyring.gpg
-  echo "deb [signed-by=/usr/share/keyrings/vscodium-archive-keyring.gpg] https://download.vscodium.com/debs vscodium main" \
+  echo "deb [arch=amd64 signed-by=/usr/share/keyrings/vscodium-archive-keyring.gpg] https://download.vscodium.com/debs vscodium main" \
     | sudo tee /etc/apt/sources.list.d/vscodium.list > /dev/null
 fi
 
 # calibre (upstream installer manages its own updates, no apt repo to add)
 if ! command -v calibre >/dev/null 2>&1; then
   sudo -v && wget -nv -O- https://download.calibre-ebook.com/linux-installer.sh | sudo sh /dev/stdin
+fi
+
+# This machine runs Linux Mint, which isn't itself recognized by repos that
+# only publish for Ubuntu codenames (Docker, AMD). Use the Ubuntu base
+# codename Mint exposes via /etc/os-release for those.
+UBUNTU_CODENAME="$(. /etc/os-release && echo "$UBUNTU_CODENAME")"
+
+# docker (needed for containerd.io)
+if [[ ! -f /etc/apt/sources.list.d/docker.list ]]; then
+  sudo install -m 0755 -d /etc/apt/keyrings
+  wget -qO - https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $UBUNTU_CODENAME stable" \
+    | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+fi
+
+# amdgpu (driver only - not the rocm compute stack, which conflicts with
+# Ubuntu's own universe rocm packages and isn't needed unless doing GPU
+# compute work)
+if [[ ! -f /etc/apt/sources.list.d/amdgpu.list ]]; then
+  wget -qO - https://repo.radeon.com/rocm/rocm.gpg.key | gpg --dearmor | sudo dd of=/usr/share/keyrings/rocm-archive-keyring.gpg
+  echo "deb [arch=amd64 signed-by=/usr/share/keyrings/rocm-archive-keyring.gpg] https://repo.radeon.com/amdgpu/latest/ubuntu $UBUNTU_CODENAME main" \
+    | sudo tee /etc/apt/sources.list.d/amdgpu.list > /dev/null
 fi
 
 sudo apt update

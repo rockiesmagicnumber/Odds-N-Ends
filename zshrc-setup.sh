@@ -15,3 +15,11 @@ $MARKER
 [ -f "$REPO_DIR/aliases.sh" ] && source "$REPO_DIR/aliases.sh"
 EOF
 fi
+
+EXPORTS_MARKER="# Odds-N-Ends exports"
+if ! grep -qF "$EXPORTS_MARKER" "$HOME/.zshrc" 2>/dev/null; then
+  cat >> "$HOME/.zshrc" <<EOF
+$EXPORTS_MARKER
+[ -f "$REPO_DIR/exports.sh" ] && source "$REPO_DIR/exports.sh"
+EOF
+fi
