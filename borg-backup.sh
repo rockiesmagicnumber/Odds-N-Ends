@@ -24,6 +24,10 @@ trap 'rm -f "$PATTERNS_TMP"' EXIT
 cat "$REPO_DIR/borg-patterns.txt" "$REPO_DIR/borg-extra-includes.txt" > "$PATTERNS_TMP"
 echo '- re:(^|/)Repos(/|$)' >> "$PATTERNS_TMP"
 
+# --filter=AME shows only files that were Added/Modified/Errored. Without it,
+# --list also prints every Unchanged (U) file and every excluded (x) path,
+# which scrolls past thousands of cache-looking lines that were never backed
+# up and buries the summary. --stats prints the size totals at the end.
 cd "$HOME"
-borg create --patterns-from "$PATTERNS_TMP" --list \
+borg create --patterns-from "$PATTERNS_TMP" --list --filter=AME --stats \
   "$BORG_REPO_PATH::archive-{now}" .
