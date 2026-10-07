@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 # Adds third-party APT repos/keys that a plain package-name list can't capture
-# (Brave, Sublime Text/Merge, VSCodium, Calibre, Docker, AMD amdgpu).
+# (Brave, Sublime Text/Merge, VSCodium, Calibre, Docker).
 # Safe to re-run.
 set -euo pipefail
 
@@ -42,15 +42,6 @@ if [[ ! -f /etc/apt/sources.list.d/docker.list ]]; then
   wget -qO - https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
   echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $UBUNTU_CODENAME stable" \
     | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-fi
-
-# amdgpu (driver only - not the rocm compute stack, which conflicts with
-# Ubuntu's own universe rocm packages and isn't needed unless doing GPU
-# compute work)
-if [[ ! -f /etc/apt/sources.list.d/amdgpu.list ]]; then
-  wget -qO - https://repo.radeon.com/rocm/rocm.gpg.key | gpg --dearmor | sudo dd of=/usr/share/keyrings/rocm-archive-keyring.gpg
-  echo "deb [arch=amd64 signed-by=/usr/share/keyrings/rocm-archive-keyring.gpg] https://repo.radeon.com/amdgpu/latest/ubuntu $UBUNTU_CODENAME main" \
-    | sudo tee /etc/apt/sources.list.d/amdgpu.list > /dev/null
 fi
 
 sudo apt update

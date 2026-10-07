@@ -1,5 +1,3 @@
-amdgpu-dkms
-amdgpu-install
 amdgpu-top
 android-sdk-platform-tools-common
 appimagelauncher
