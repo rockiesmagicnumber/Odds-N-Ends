@@ -11,7 +11,7 @@ corefonts vcrun2019 win10` applied to the prefix.
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| Login works, then launcher stalls: "Battle.net Update Agent went to sleep" (`BLZBNTBNA00000005`) | Agent rejected the launcher's signature (`Failed Caller authorization due to signature for 'Battle.net.exe'`, client log `response=401`) because the Wine build could not decode Authenticode signature data (`Unsupported decoder for lpszStructType 1.3.6.1.4.1.311.2.1.4`) | Use a newer Wine. Distro `wine-9.0` and `wine-ge-8-26` both failed; `proton-cachyos-11` and Proton Experimental passed |
+| Login works, then launcher stalls: "Battle.net Update Agent went to sleep" (`BLZBNTBNA00000005`) | Agent rejects the launcher (`Failed Caller authorization due to signature for 'Battle.net.exe'`, client log `response=401`). **Root cause unknown.** It tracks the Wine build: Wine 8/9 builds fail, Wine 10/11 builds pass | Use a newer Wine. Distro `wine-9.0` and `wine-ge-8-26` both failed (`wine-ge-8-26` still failed with Tahoma installed); `proton-cachyos-11` and Proton Experimental passed |
 | `err:ntlm: no NTLM support, expect problems` | `ntlm_auth` missing | `sudo apt install winbind` |
 | Launcher window freezes at an empty login screen; main `Battle.net.exe` process vanishes, helpers linger; log shows `err:virtual:virtual_setup_exception stack overflow ...` | Missing fonts (reproduced on Proton-CachyOS and Proton Experimental, on old and fresh prefixes) | `winetricks tahoma corefonts` |
 | Install button says "Your OS is unsupported" | Prefix reported Windows 7 | `winetricks win10` |
@@ -65,8 +65,13 @@ In Lutris: Configure -> Runner options -> Wine version -> `Proton - Experimental
 
 ## Caveats
 
-This was a one-machine investigation. The stack overflow reproduced on two
-different Wine builds and two prefixes until Tahoma was installed, which is why
-I attribute the fix to fonts, but I did not isolate it from `corefonts` (it was
-installed in the same run on the clean prefix; on the original prefix `corefonts`
-was already present and adding only `tahoma` fixed it).
+This was a one-machine investigation, and there were two separate problems:
+
+- **Agent rejection:** fixed by the runner (Wine 10/11 instead of 8/9). Tahoma
+  doesn't affect it. I initially blamed an `Unsupported decoder ...
+  1.3.6.1.4.1.311.2.1.4` message (signature-data decoding), but that line still
+  appears on the builds where the Agent passes, so it isn't the cause.
+- **UI crash (stack overflow):** only happens on the newer Wine builds (the
+  Wine 8 build kept the UI alive without Tahoma). It reproduced on two Wine
+  builds and two prefixes until Tahoma was installed. On the original prefix
+  `corefonts` was already present and adding only `tahoma` fixed it.
